@@ -137,10 +137,10 @@
     </select>
   </div>
   <div id="scoreboard">
-    <div id="player1">Player 1: <span id="score1">0</span></div>
-    <div id="player2">Player 2: <span id="score2">0</span></div>
+    <div id="Blue" style="color: #357ABD;">Blue: <span id="score1">0</span></div>
+    <div id="Red" style="color: red;">Red: <span id="score2">0</span></div>
   </div>
-  <p id="turn-indicator">Player 1's Turn</p>
+  <p id="turn-indicator">Blue</p>
   <div id="game-board"></div>
   <button id="restart">Restart Game</button>
   <script>
@@ -257,7 +257,7 @@
       flippedCards = [];
       playerTurn = 1;
       updateScores();
-      turnIndicator.textContent = `Player 1's Turn`;
+      turnIndicator.textContent = `Blue`;
       setupBoard(difficultySelector.value);
     });
 
@@ -266,7 +266,7 @@
       flippedCards = [];
       playerTurn = 1;
       updateScores();
-      turnIndicator.textContent = `Player 1's Turn`;
+      turnIndicator.textContent = `Blue`;
       setupBoard(difficultySelector.value);
     });
 
