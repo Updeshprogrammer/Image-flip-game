@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Two-Player Image Flip Game</title>
+  <style>
+    /* Global Styles */
+    body {
+      font-family: 'Arial', sans-serif;
+      background-color: #f4f4f9;
+      color: #333;
+      margin: 0;
+      padding: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+    }
+
+    h1 {
+      margin: 20px 0;
+      font-size: 2rem;
+      text-transform: uppercase;
+      color: #4A90E2;
+    }
+
+    #scoreboard {
+      display: flex;
+      justify-content: space-between;
+      width: 90%;
+      max-width: 400px;
+      margin-bottom: 10px;
+    }
+
+    #scoreboard div {
+      background-color: #fff;
+      padding: 10px 20px;
+      border-radius: 10px;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+      font-size: 1rem;
+      font-weight: bold;
+    }
+
+    #turn-indicator {
+      margin: 10px 0 20px;
+      font-size: 1.2rem;
+      font-weight: bold;
+      color: #ff6f61;
+    }
+
+    /* Game Board */
+    #game-board {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(80px, 1fr));
+      gap: 10px;
+      width: 90%;
+      max-width: 400px;
+    }
+
+    .card {
+      width: 100%;
+      position: relative;
+      perspective: 1000px;
+      cursor: pointer;
+    }
+
+    .card-inner {
+      width: 100%;
+      padding-top: 100%; /* Maintain a square aspect ratio */
+      position: relative;
+      transform-style: preserve-3d;
+      transform: rotateY(0);
+      transition: transform 0.6s;
+    }
+
+    .card.flipped .card-inner {
+      transform: rotateY(180deg);
+    }
+
+    .card-front,
+    .card-back {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      backface-visibility: hidden;
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    }
+
+    .card-back {
+      background-color: #f0f0f0;
+    }
+
+    .card-front {
+      background-color: #4A90E2;
+      color: #fff;
+      font-size: 2rem;
+      transform: rotateY(180deg);
+    }
+
+    /* Button */
+    #restart {
+      margin-top: 20px;
+      padding: 10px 20px;
+      font-size: 1rem;
+      background-color: #4A90E2;
+      color: #fff;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      transition: background-color 0.3s ease;
+    }
+
+    #restart:hover {
+      background-color: #357ABD;
+    }
+  </style>
+</head>
+<body>
+  <h1>Image Flip Game</h1>
+  <div id="scoreboard">
+    <div id="player1">Player 1: <span id="score1">0</span></div>
+    <div id="player2">Player 2: <span id="score2">0</span></div>
+  </div>
+  <p id="turn-indicator">Player 1's Turn</p>
+  <div id="game-board"></div>
+  <button id="restart">Restart Game</button>
+  <script>
+    const gameBoard = document.getElementById('game-board');
+    const score1Element = document.getElementById('score1');
+    const score2Element = document.getElementById('score2');
+    const turnIndicator = document.getElementById('turn-indicator');
+    const restartButton = document.getElementById('restart');
+
+    let cardImages = ['🍎', '🍌', '🍇', '🍓', '🍎', '🍌', '🍇', '🍓'];
+    let cards = [];
+    let flippedCards = [];
+    let playerTurn = 1;
+    let scores = [0, 0];
+
+    function shuffle(array) {
+      return array.sort(() => Math.random() - 0.5);
+    }
+
+    function createBoard() {
+      gameBoard.innerHTML = '';
+      cards = shuffle(cardImages).map((image, index) => {
+        const card = document.createElement('div');
+        card.classList.add('card');
+        card.dataset.id = index;
+        card.innerHTML = `
+          <div class="card-inner">
+            <div class="card-front">${image}</div>
+            <div class="card-back"></div>
+          </div>
+        `;
+        gameBoard.appendChild(card);
+        card.addEventListener('click', () => flipCard(card));
+        return card;
+      });
+    }
+
+    function flipCard(card) {
+      if (flippedCards.length === 2 || card.classList.contains('flipped')) return;
+
+      card.classList.add('flipped');
+      flippedCards.push(card);
+
+      if (flippedCards.length === 2) {
+        setTimeout(checkMatch, 1000);
+      }
+    }
+
+    function checkMatch() {
+      const [card1, card2] = flippedCards;
+      const id1 = card1.dataset.id;
+      const id2 = card2.dataset.id;
+
+      if (card1.innerHTML === card2.innerHTML && id1 !== id2) {
+        scores[playerTurn - 1]++;
+        updateScores();
+        card1.removeEventListener('click', () => flipCard(card1));
+        card2.removeEventListener('click', () => flipCard(card2));
+      } else {
+        card1.classList.remove('flipped');
+        card2.classList.remove('flipped');
+        switchTurn();
+      }
+      flippedCards = [];
+      checkGameEnd();
+    }
+
+    function switchTurn() {
+      playerTurn = playerTurn === 1 ? 2 : 1;
+      turnIndicator.textContent = `Player ${playerTurn}'s Turn`;
+      turnIndicator.style.color = playerTurn === 1 ? '#4A90E2' : '#FF6F61';
+    }
+
+    function updateScores() {
+      score1Element.textContent = scores[0];
+      score2Element.textContent = scores[1];
+    }
+
+    function checkGameEnd() {
+      const flippedCardsCount = document.querySelectorAll('.card.flipped').length;
+      if (flippedCardsCount === cardImages.length) {
+        const winner = scores[0] === scores[1] ? 'It\'s a Tie!' : `Player ${scores[0] > scores[1] ? 1 : 2} Wins!`;
+        alert(winner);
+      }
+    }
+
+    restartButton.addEventListener('click', () => {
+      scores = [0, 0];
+      flippedCards = [];
+      playerTurn = 1;
+      updateScores();
+      turnIndicator.textContent = `Player 1's Turn`;
+      turnIndicator.style.color = '#4A90E2';
+      createBoard();
+    });
+
+    // Initialize the game
+    createBoard();
+  </script>
+</body>
+</html>
