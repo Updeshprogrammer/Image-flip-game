@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+<!-- <!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
@@ -276,6 +276,335 @@
 
     // Initialize the game
     setupBoard('normal');
+  </script>
+</body>
+</html> -->
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Image Flip Game</title>
+  <style>
+    /* Global Styles */
+    body {
+      font-family: 'Arial', sans-serif;
+      background-color: #fff;
+      color: #333;
+      margin: 0;
+      padding: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+    }
+
+    h1 {
+      margin: 20px 0;
+      font-size: 2rem;
+      text-transform: uppercase;
+      color: #4A90E2;
+    }
+
+    #player-names {
+      margin-bottom: 20px;
+    }
+
+    #player-names input {
+      margin: 0 5px;
+      padding: 5px 10px;
+      font-size: 1rem;
+    }
+
+    #player-names button {
+      padding: 5px 20px;
+      background-color: #4A90E2;
+      color: #fff;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      transition: background-color 0.3s ease;
+    }
+
+    #player-names button:hover {
+      background-color: #357ABD;
+    }
+
+    #scoreboard {
+      display: flex;
+      justify-content: space-between;
+      width: 90%;
+      max-width: 400px;
+      margin-bottom: 10px;
+    }
+
+    #scoreboard div {
+      background-color: #fff;
+      padding: 10px 20px;
+      border-radius: 10px;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+      font-size: 1rem;
+      font-weight: bold;
+    }
+
+    #turn-indicator {
+      margin: 10px 0 20px;
+      font-size: 1.2rem;
+      font-weight: bold;
+      color: #ff6f61;
+    }
+
+    #difficulty-selector {
+      margin-bottom: 20px;
+    }
+
+    #game-board {
+      display: grid;
+      gap: 10px;
+      width: 90%;
+      max-width: 600px;
+    }
+
+    .card {
+      width: 100%;
+      position: relative;
+      perspective: 1000px;
+      cursor: pointer;
+    }
+
+    .card-inner {
+      width: 100%;
+      padding-top: 100%; /* Maintain a square aspect ratio */
+      position: relative;
+      transform-style: preserve-3d;
+      transform: rotateY(0);
+      transition: transform 0.6s;
+    }
+
+    .card.flipped .card-inner {
+      transform: rotateY(180deg);
+    }
+
+    .card-front,
+    .card-back {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      backface-visibility: hidden;
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    }
+
+    .card-back {
+      background-color: #000;
+    }
+
+    .card-front {
+      background-color: #4A90E2;
+      color: #fff;
+      font-size: 2rem;
+      transform: rotateY(180deg);
+    }
+
+    #restart {
+      margin-top: 20px;
+      padding: 10px 20px;
+      font-size: 1rem;
+      background-color: #4A90E2;
+      color: #fff;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      transition: background-color 0.3s ease;
+    }
+
+    #restart:hover {
+      background-color: #357ABD;
+    }
+
+    .bg-white {
+      background-color: whitesmoke;
+    }
+  </style>
+</head>
+<body>
+  <h1>Image Flip Game</h1>
+  <div id="player-names">
+    <input id="player1-name" type="text" placeholder="Player 1 Name" />
+    <input id="player2-name" type="text" placeholder="Player 2 Name" />
+    <button id="start-game">Start Game</button>
+  </div>
+  <div id="difficulty-selector">
+    <label for="difficulty">Select Difficulty: </label>
+    <select id="difficulty">
+      <option value="easy">Easy (2x4)</option>
+      <option value="normal" selected>Normal (4x4)</option>
+      <option value="hard">Hard (6x6)</option>
+    </select>
+  </div>
+  <div id="scoreboard">
+    <div id="Blue">Blue: <span id="score1">0</span></div>
+    <div id="Red">Red: <span id="score2">0</span></div>
+  </div>
+  <p id="turn-indicator"></p>
+  <div id="game-board"></div>
+  <button id="restart" disabled>Restart Game</button>
+  <div><h4>Made by Updesh Kushwaha</h4></div>
+  <script>
+    const gameBoard = document.getElementById('game-board');
+    const score1Element = document.getElementById('score1');
+    const score2Element = document.getElementById('score2');
+    const turnIndicator = document.getElementById('turn-indicator');
+    const restartButton = document.getElementById('restart');
+    const difficultySelector = document.getElementById('difficulty');
+    const startGameButton = document.getElementById('start-game');
+    const player1Input = document.getElementById('player1-name');
+    const player2Input = document.getElementById('player2-name');
+
+    let playerNames = ["Player 1", "Player 2"];
+    let cardImages = [];
+    let cards = [];
+    let flippedCards = [];
+    let playerTurn = 1;
+    let scores = [0, 0];
+    let rows = 4;
+    let cols = 4;
+
+    const allImages = ['🍎', '🍌', '🍇', '🍓', '🍒', '🥝', '🍍', '🍉', '🍋', '🍑', '🍊', '🥥', '🥭', '🫐', '🍐', '🍏', '🌽', '🥕'];
+
+    function shuffle(array) {
+      return array.sort(() => Math.random() - 0.5);
+    }
+
+    function setupBoard(difficulty) {
+      if (difficulty === 'easy') {
+        rows = 2;
+        cols = 4;
+      } else if (difficulty === 'normal') {
+        rows = 4;
+        cols = 4;
+      } else if (difficulty === 'hard') {
+        rows = 6;
+        cols = 6;
+      }
+
+      const totalCards = rows * cols;
+      cardImages = shuffle(allImages).slice(0, totalCards / 2).flatMap(image => [image, image]);
+      cardImages = shuffle(cardImages);
+
+      gameBoard.style.gridTemplateColumns = `repeat(${cols}, 1fr)`;
+      createBoard();
+    }
+
+    function createBoard() {
+      gameBoard.innerHTML = '';
+      cards = cardImages.map((image, index) => {
+        const card = document.createElement('div');
+        card.classList.add('card');
+        card.dataset.id = index;
+        card.innerHTML = `
+          <div class="card-inner">
+            <div class="card-front">${image}</div>
+            <div class="card-back"></div>
+          </div>
+        `;
+        gameBoard.appendChild(card);
+        card.addEventListener('click', () => flipCard(card));
+        return card;
+      });
+    }
+
+    function flipCard(card) {
+      if (flippedCards.length === 2 || card.classList.contains('flipped')) return;
+
+      card.classList.add('flipped');
+      flippedCards.push(card);
+
+      if (flippedCards.length === 2) {
+        setTimeout(checkMatch, 1000);
+      }
+    }
+
+    function checkMatch() {
+      const [card1, card2] = flippedCards;
+      const id1 = card1.dataset.id;
+      const id2 = card2.dataset.id;
+
+      if (card1.innerHTML === card2.innerHTML && id1 !== id2) {
+        scores[playerTurn - 1]++;
+        updateScores();
+        card1.removeEventListener('click', () => flipCard(card1));
+        card2.removeEventListener('click', () => flipCard(card2));
+      } else {
+        card1.classList.remove('flipped');
+        card2.classList.remove('flipped');
+        switchTurn();
+      }
+      flippedCards = [];
+      checkGameEnd();
+    }
+
+    function switchTurn() {
+      playerTurn = playerTurn === 1 ? 2 : 1;
+      turnIndicator.textContent = `${playerNames[playerTurn - 1]}'s Turn`;
+      turnIndicator.style.color = playerTurn === 1 ? '#4A90E2' : '#FF6F61';
+    }
+
+    function updateScores() {
+      score1Element.textContent = scores[0];
+      score2Element.textContent = scores[1];
+    }
+
+    function checkGameEnd() {
+      const flippedCardsCount = document.querySelectorAll('.card.flipped').length;
+      if (flippedCardsCount === cardImages.length) {
+        const winner =
+          scores[0] === scores[1]
+            ? 'It\'s a Tie!'
+            : `${scores[0] > scores[1] ? playerNames[0] : playerNames[1]} Wins!`;
+        setTimeout(() => {
+          alert(`Game Over Guys!\n${winner}`);
+        }, 100);
+      }
+    }
+
+    startGameButton.addEventListener('click', () => {
+      const player1 = player1Input.value.trim() || 'Player 1';
+      const player2 = player2Input.value.trim() || 'Player 2';
+      playerNames = [player1, player2];
+      turnIndicator.textContent = `${playerNames[0]}'s Turn`;
+      restartButton.disabled = false;
+      scores = [0, 0];
+      flippedCards = [];
+      playerTurn = 1;
+      updateScores();
+      setupBoard(difficultySelector.value);
+    });
+
+    restartButton.addEventListener('click', () => {
+      scores = [0, 0];
+      flippedCards = [];
+      playerTurn = 1;
+      updateScores();
+      turnIndicator.textContent = `${playerNames[0]}'s Turn`;
+      setupBoard(difficultySelector.value);
+    });
+
+    difficultySelector.addEventListener('change', () => {
+      scores = [0, 0];
+      flippedCards = [];
+      playerTurn = 1;
+      updateScores();
+      turnIndicator.textContent = `${playerNames[0]}'s Turn`;
+      setupBoard(difficultySelector.value);
+    });
   </script>
 </body>
 </html>
